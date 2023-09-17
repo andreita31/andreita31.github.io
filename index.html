@@ -217,7 +217,7 @@
         function update(){
             window.requestAnimationFrame(update);
             if (!paused){
-                if(count == 1){
+                if(count == cards_arr.length / 2){
                     setTimeout(()=>{
                         winScreen();
                     }, 2000)
