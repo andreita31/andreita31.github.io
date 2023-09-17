@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memorama</title>
+    <style>
+        canvas {
+            display: block;
+            margin: auto;
+        }
+        img{
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="myCanvas" width="1500" height="600" style="border:1px solid grey"></canvas>
+    <img id="dorso" src="img/dorso.jpg" alt="dorso">
+    <img id="arthur" src="img/arthur.jpg" alt="arthur">
+    <img id="bellatrix" src="img/bellatrix.jpg" alt="bellatrix">
+    <img id="bill" src="img/bill.jpg" alt="bill">
+    <img id="draco" src="img/draco.jpg" alt="draco">
+    <img id="dumbledore" src="img/dumbledore.jpg" alt="dumbledore">
+    <img id="ginny" src="img/ginny.jpg" alt="ginny">
+    <img id="hagrid" src="img/hagrid.jpg" alt="hagrid">
+    <img id="harry" src="img/harry.jpg" alt="harry">
+    <img id="hermione" src="img/hermione.jpg" alt="hermione">
+    <img id="luna" src="img/luna.jpg" alt="luna">
+    <img id="minerva" src="img/minerva.jpg" alt="minerva">
+    <img id="newt" src="img/newt.jpg" alt="newt">
+    <img id="ron" src="img/ron.jpg" alt="ron">
+    <img id="snape" src="img/snape.jpg" alt="snape">
+    <img id="twins" src="img/twins.jpg" alt="twins">
+    
+    <audio src="sounds/vin-harry-potter.mp3" type="audio/mp3" id="music"></audio>
+    <audio src="sounds/plop2.mp3" type="audio/mp3" id="click"></audio>
+    <audio src="sounds/protego.mp3" type="audio/mp3" id="pairs"></audio>
+
+    <script>
+        const canvas = document.getElementById("myCanvas");
+        const ctx = canvas.getContext("2d");
+        
+        var music = document.getElementById("music");
+        var click = document.getElementById("click");
+        var pairs = document.getElementById("pairs");
+
+        const dorso = document.getElementById("dorso");
+        const arthur = document.getElementById("arthur");
+        const bellatrix = document.getElementById("bellatrix");
+        const bill = document.getElementById("bill");
+        const draco = document.getElementById("draco");
+        const dumbledore = document.getElementById("dumbledore");
+        const ginny = document.getElementById("ginny");
+        const hagrid = document.getElementById("hagrid");
+        const harry = document.getElementById("harry");
+        const hermione = document.getElementById("hermione");
+        const luna = document.getElementById("luna");
+        const minerva = document.getElementById("minerva");
+        const newt = document.getElementById("newt");
+        const ron = document.getElementById("ron");
+        const snape = document.getElementById("snape");
+        const twins = document.getElementById("twins");
+        
+        var paused = true;
+
+        const img_arr = [arthur, bellatrix, bill, draco, dumbledore, ginny, hagrid, harry, hermione, luna, minerva, newt, ron, snape, twins];
+        const mixed_array = [];//Arreglo de imágenes con posiciones mezcladas
+        const cards_arr = [];//Arreglo de objetos Card
+        const card_size = 150, gap = 20;
+        var count = 0;
+
+        const board_w = canvas.width;
+        const board_h = card_size * 3;
+        const ini_x = ((canvas.width - board_w) / 2);
+        const ini_y = ((canvas.height - board_h) / 2) + gap;
+        // console.log(board_w);
+        // console.log(canvas.width);
+        // console.log(board_h);
+        // console.log(canvas.height);
+        // console.log(ini_x);
+        // console.log(ini_y);
+
+        class Card {
+            static first_flipped = null;
+            static animating = false;
+            constructor(image, x, y, w, h, flipped, dorso, removed_card) {
+                this.image = image;
+                this.x = x;
+                this.y = y;
+                this.w = w;
+                this.h = h;
+                this.flipped = flipped;
+                this.dorso = dorso;
+                this.removed_card = removed_card;
+            }
+
+            click(x_pointer, y_pointer){
+                if (Card.animating) return;
+                if (this.x < x_pointer && x_pointer < this.x + card_size && this.y < y_pointer && y_pointer < this.y + card_size){
+                    click.play();
+                    this.flipped = true;
+                    if(Card.first_flipped == this) return;
+                    if(Card.first_flipped == null)
+                        Card.first_flipped = this;
+                    else{
+                        if(Card.first_flipped.image == this.image){
+                            setTimeout(()=>{
+                                pairs.play();
+                                this.removed_card = true;
+                                Card.first_flipped.removed_card = true;
+                                Card.first_flipped = null;
+                                count++;
+                            }, 1000)
+                        }else{
+                            Card.animating = true;
+                            setTimeout(() => {
+                                Card.first_flipped.flipped = false;
+                                this.flipped = false;
+                                Card.animating = false;
+                                Card.first_flipped = null;
+                            }, 1000)
+                        }
+                    }
+                } 
+            }
+
+            paint() {
+                if(this.removed_card == true){
+                    ctx.fillStyle = "white";
+                    ctx.fillRect(this.x, this.y, this.w, this.h)
+                }else{
+                    if(this.flipped == true){
+                        ctx.drawImage(this.image,this.x, this.y, this.w, this.h);
+                    }else{
+                        ctx.drawImage(this.dorso, this.x, this.y, this.w, this.h);
+                    }
+                }
+            }
+        }
+
+        document.addEventListener("keydown", (e) => {
+            if(e.keyCode == 80) {
+                paused = !paused;
+            }
+        })
+
+        function fillArray(){
+            for (let i = 0; i < (img_arr.length * 2); i++) {
+                mixed_array[i] = img_arr[i % img_arr.length];
+            }
+        }
+        fillArray();
+        
+        function mixCards(){
+            var aux;
+            
+            for (let i = 0; i < mixed_array.length; i++) {
+                var numRand = Math.floor(Math.random() * 10);
+                aux = mixed_array[i];
+                mixed_array[i] = mixed_array[numRand];
+                mixed_array[numRand] = aux;
+            }
+        }
+        mixCards();
+        
+        function givePositions(){
+            var aux = 0;
+            for (let i = ini_y; i < board_h; i+=(card_size)) {
+                for (let j = ini_x; j < board_w; j+=(card_size)) {
+                    cards_arr.push(new Card(mixed_array[aux], j, i, card_size, card_size, false, dorso, false));
+                    aux++;
+                }
+            }
+        }
+        givePositions();
+
+        canvas.addEventListener("click", (e)=>{
+            for(let i = 0; i < cards_arr.length; i++){
+                cards_arr[i].click(e.offsetX, e.offsetY);
+            }
+            // console.log(count)
+        })
+
+        function repaint(){
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, 1500, 600);
+            for(let i = 0; i < cards_arr.length; i++){
+                cards_arr[i].paint();
+            }
+            // ctx.font = "10px Arial";
+            // ctx.fillStyle = "black";
+            // ctx.fillText(cen, 650, 300);
+            music.play();
+        }
+
+        function winScreen(){
+            ctx.fillStyle = "rgba(155, 155, 155, .01)";
+            ctx.fillRect(0, 0, 1500, 600);
+            ctx.font = "50px Arial";
+            ctx.fillStyle = "green";
+            ctx.fillText("Haz ganado", 650, 300);
+            music.pause();
+        }
+
+        console.log(cards_arr)
+        function pausedScreen(){
+            music.pause();
+            ctx.fillStyle = "rgba(155, 155, 155, .01)";
+            ctx.fillRect(0, 0, 1500, 600);
+            ctx.font = "50px Arial";
+            ctx.fillStyle = "black";
+            ctx.fillText("Pause", 650, 300);
+            ctx.fillStyle = "red";
+            ctx.fillText("Press P", 635, 350);
+        }
+        
+        function update(){
+            window.requestAnimationFrame(update);
+            if (!paused){
+                if(count == cards_arr.length){
+                    setTimeout(()=>{
+                        winScreen();
+                    }, 2000)
+                }else{
+                    repaint();
+                }
+            }else{
+                pausedScreen();
+            }
+        }
+
+        window.requestAnimationFrame = (function () {
+            return window.requestAnimationFrame ||
+                window.webkitRequestAnimationFrame ||
+                window.mozRequestAnimationFrame ||
+                function (callback) {
+                    window.setTimeout(callback, 17);
+                };
+        }());
+        window.requestAnimationFrame(update);
+
+    </script>
+</body>
+</html>
