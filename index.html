@@ -67,6 +67,8 @@
         const img_arr = [arthur, bellatrix, bill, draco, dumbledore, ginny, hagrid, harry, hermione, luna, minerva, newt, ron, snape, twins];
         const mixed_array = [];//Arreglo de imágenes con posiciones mezcladas
         const cards_arr = [];//Arreglo de objetos Card
+        // var flipped_arr = ['', ''];
+        var flipped_first = '', flipped_second = '';
         const card_size = 150, gap = 20;
         var count = 0;
 
@@ -188,9 +190,6 @@
             for(let i = 0; i < cards_arr.length; i++){
                 cards_arr[i].paint();
             }
-            // ctx.font = "10px Arial";
-            // ctx.fillStyle = "black";
-            // ctx.fillText(cen, 650, 300);
             music.play();
         }
 
@@ -218,7 +217,7 @@
         function update(){
             window.requestAnimationFrame(update);
             if (!paused){
-                if(count == cards_arr.length){
+                if(count == 1){
                     setTimeout(()=>{
                         winScreen();
                     }, 2000)
